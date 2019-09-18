@@ -27,14 +27,17 @@ import cats.implicits._
 
 import fs2.{Pure, Stream}
 
-final case class Rand[A](state: State[RNG, A]) extends AnyVal {
+final case class Rand[A] private (state: State[RNG, A]) extends AnyVal {
 
   def sample(seed: Seed): Stream[Pure, A] =
     Stream.unfold(RNG(seed))(rng => state.run(rng).value.swap.some)
   
 }
 object Rand extends RandInstances {
+
   def const[A](a: A): Rand[A] = Rand(State.pure(a))
+
+  def unit: Rand[Unit] = const(())
 
   def oneOf[A](seq: NonEmptyVector[A]): Rand[A] = Rand(State { rng =>
     val vec = seq.toVector
@@ -53,14 +56,21 @@ object Rand extends RandInstances {
   def int: Rand[Int] = Rand(State(_.nextInt))
   
   def boolean: Rand[Boolean] = Rand(State { rng =>
-    val (r, i) = rng.nextInt(2)
-    (r, if (i == 0) false else true)
+    val (r, i) = rng.nextInt
+    (r, if (i % 2 == 0) false else true)
   })
 
   def double: Rand[Double] = Rand(State { rng =>
     val (r, i) = rng.nextInt(Int.MaxValue)
     (r, i / Int.MaxValue.toDouble + 1)
   })
+
+  def weighted[A](rands: NonEmptyList[(Int, Rand[A])]): Rand[A] = {
+    val allRands = rands.flatMap { case (weight, rand) =>
+      NonEmptyList.fromListUnsafe(List.fill(weight)(rand))
+    }
+    oneOf(NonEmptyVector.fromVectorUnsafe(allRands.toList.toVector)).flatten
+  }
 
 }
 

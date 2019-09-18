@@ -35,6 +35,9 @@ import scala.concurrent.ExecutionContext
 object PurerandCLI {
   private implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
 
+  def run[A: Show](rand: Rand[A])(args: List[String]): Unit =
+    main(rand)(args).void.unsafeRunSync()
+
   def main[A: Show](rand: Rand[A])(args: List[String]): IO[ExitCode] = {
     mainCmd(rand).parse(args) match {
       case Right(action) => action

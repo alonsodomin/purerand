@@ -30,8 +30,12 @@ import com.monovore.decline._
 
 import purerand.render._
 
+import scala.concurrent.ExecutionContext
+
 object PurerandCLI {
-  def main[A: Show](rand: Rand[A])(args: List[String])(implicit timer: Timer[IO]): IO[ExitCode] = {
+  private implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
+
+  def main[A: Show](rand: Rand[A])(args: List[String]): IO[ExitCode] = {
     mainCmd(rand).parse(args) match {
       case Right(action) => action
       case Left(help) =>
@@ -39,7 +43,7 @@ object PurerandCLI {
     }
   }
 
-  private def mainCmd[A: Show](rand: Rand[A])(implicit timer: Timer[IO]): Command[IO[ExitCode]] = {
+  private def mainCmd[A: Show](rand: Rand[A]): Command[IO[ExitCode]] = {
     Command("", "")(Settings.opts).map { settings =>
       for {
         seed <- settings.seed.fold(Seed.fromWallClock[IO])(IO.pure)

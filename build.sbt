@@ -114,5 +114,8 @@ lazy val scalacSettings = Seq(
 )
 
 lazy val commonSettings = scalacSettings ++ Seq(
-  libraryDependencies += compilerPlugin("org.typelevel" % "kind-projector" % "0.10.3" cross CrossVersion.binary)
+  libraryDependencies ++= Seq(
+    compilerPlugin("org.typelevel" % "kind-projector" % "0.10.3" cross CrossVersion.binary),
+    compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
+  )
 )

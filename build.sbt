@@ -1,5 +1,3 @@
-ThisBuild / scalaVersion := "2.13.0"
-
 inThisBuild(Seq(
   startYear := Some(2019),
   organization := "com.github.alonsodomin",

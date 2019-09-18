@@ -25,7 +25,14 @@ import cats._
 import cats.data._
 import cats.implicits._
 
-final case class Rand[A](state: State[RNG, A]) extends AnyVal
+import fs2.{Pure, Stream}
+
+final case class Rand[A](state: State[RNG, A]) extends AnyVal {
+
+  def sample(seed: Seed): Stream[Pure, A] =
+    Stream.unfold(RNG(seed))(rng => state.run(rng).value.swap.some)
+  
+}
 object Rand extends RandInstances {
   def const[A](a: A): Rand[A] = Rand(State.pure(a))
 

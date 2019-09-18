@@ -21,6 +21,20 @@
 
 package gen
 
+import cats.Functor
+import cats.effect.Clock
+import cats.implicits._
+
+import java.util.concurrent.TimeUnit
+
+final case class Seed private (value: Long) extends AnyVal
+object Seed {
+  def fromLong(value: Long): Seed = Seed(value)
+
+  def fromWallClock[F[_]: Functor](implicit clock: Clock[F]): F[Seed] = 
+    clock.monotonic(TimeUnit.MICROSECONDS).map(fromLong)
+}
+
 trait RNG {
   def nextInt: (RNG, Int)
 
@@ -31,12 +45,17 @@ trait RNG {
   }
 
 }
+object RNG {
 
-case class SimpleRNG(seed: Long) extends RNG {
-  def nextInt: (RNG, Int) = {
-    val newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
-    val nextRNG = SimpleRNG(newSeed)
-    val n = (newSeed >>> 16).toInt
-    (nextRNG, n)
+  def apply(seed: Seed): RNG = SimpleRNG(seed)
+
+  private case class SimpleRNG(seed: Seed) extends RNG {
+    def nextInt: (RNG, Int) = {
+      val newSeed = (seed.value * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
+      val nextRNG = SimpleRNG(Seed(newSeed))
+      val n = (newSeed >>> 16).toInt
+      (nextRNG, n)
+    }
   }
+
 }

@@ -1,3 +1,5 @@
+import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+
 inThisBuild(Seq(
   name := "purerand",
   startYear := Some(2019),
@@ -5,23 +7,40 @@ inThisBuild(Seq(
   organizationName := "A. Alonso Dominguez",
   description := "Pure random generator of values",
   licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT")),
-  scmInfo := Some(ScmInfo(url("https://github.com/alonsodomin/purerand"), "scm:git:git@github.com:alonsodomin/purerand.git"))
+  scmInfo := Some(ScmInfo(url("https://github.com/alonsodomin/purerand"), "scm:git:git@github.com:alonsodomin/purerand.git")),
+  developers += Developer(
+    "alonsodomin",
+    "A. Alonso Dominguez",
+    "",
+    url("https://github.com/alonsodomin")
+  )
 ))
 
 lazy val purerand = (project in file("."))
+  .settings(globalSettings)
+  .aggregate(core.js, core.jvm)
+
+lazy val core = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .withoutSuffixFor(JVMPlatform)
+  .in(file("modules/core"))
   .enablePlugins(AutomateHeaderPlugin)
-  .settings(scalacSettings)
+  .settings(globalSettings)
   .settings(commonSettings)
   .settings(
     moduleName := "purerand",
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-core" % "2.0.0",
-      "org.typelevel" %% "kittens" % "2.0.0",
-      "co.fs2" %% "fs2-core" % "2.0.0"
+      "org.typelevel" %%% "cats-core" % Versions.cats,
+      "org.typelevel" %%% "kittens" % Versions.kittens,
+      "co.fs2" %%% "fs2-core" % Versions.fs2
     )
   )
 
 // Settings
+
+lazy val globalSettings = Seq(
+  sonatypeProfileName := "com.github.alonsodomin"
+)
 
 lazy val scalacSettings = Seq(
   scalacOptions ++= Seq(
@@ -93,6 +112,6 @@ lazy val scalacSettings = Seq(
   scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings")
 )
 
-lazy val commonSettings = Seq(
+lazy val commonSettings = scalacSettings ++ Seq(
   libraryDependencies += compilerPlugin("org.typelevel" % "kind-projector" % "0.10.3" cross CrossVersion.binary)
 )

@@ -21,22 +21,11 @@
 
 package purerand
 
-import cats.Functor
-import cats.effect.Clock
-import cats.implicits._
-
-import java.util.concurrent.TimeUnit
-
-final case class Seed private (value: Long) extends AnyVal
-object Seed {
-  def fromLong(value: Long): Seed = Seed(value)
-
-  def fromWallClock[F[_]: Functor](implicit clock: Clock[F]): F[Seed] = 
-    clock.monotonic(TimeUnit.MICROSECONDS).map(fromLong)
-}
-
 private[purerand] trait RNG {
-  def nextInt: (RNG, Int)
+  def nextInt: (RNG, Int) = {
+    val (rng, l) = nextLong
+    (rng, l.toInt)
+  }
 
   def nextInt(maxValue: Int): (RNG, Int) = {
     val (rng, i) = nextInt
@@ -44,18 +33,19 @@ private[purerand] trait RNG {
     (rng, abs % maxValue)
   }
 
-}
-private[purerand] object RNG {
+  def nextLong: (RNG, Long)
 
+}
+
+private[purerand] object RNG {
   def apply(seed: Seed): RNG = SimpleRNG(seed)
 
-  case class SimpleRNG(seed: Seed) extends RNG {
-    def nextInt: (RNG, Int) = {
+  private case class SimpleRNG(seed: Seed) extends RNG {
+    def nextLong: (RNG, Long) = {
       val newSeed = (seed.value * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
       val nextRNG = SimpleRNG(Seed(newSeed))
-      val n = (newSeed >>> 16).toInt
+      val n = (newSeed >>> 16)
       (nextRNG, n)
     }
   }
-
 }

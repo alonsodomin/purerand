@@ -64,25 +64,23 @@ object Rand extends RandInstances {
 
 }
 
-trait RandInstances {
-  implicit val randFunctor: Functor[Rand] = new RandFunctor {}
-
+private[gen] trait RandInstances {
   implicit val randMonad: Monad[Rand] = new RandMonad {}
 }
 
-trait RandFunctor extends Functor[Rand] {
+private[gen] trait RandFunctor extends Functor[Rand] {
   def map[A, B](fa: Rand[A])(f: A => B): Rand[B] =
       Rand(fa.state.map(f))
 }
 
-trait RandApplicative extends RandFunctor with Applicative[Rand] {
+private[gen] trait RandApplicative extends RandFunctor with Applicative[Rand] {
   def pure[A](x: A): Rand[A] = Rand.const(x)
 
   def ap[A, B](ff: Rand[A => B])(fa: Rand[A]): Rand[B] =
     Rand(ff.state.ap(fa.state))
 }
 
-trait RandMonad extends RandApplicative with Monad[Rand] {
+private[gen] trait RandMonad extends RandApplicative with Monad[Rand] {
   def flatMap[A, B](fa: Rand[A])(f: A => Rand[B]): Rand[B] =
     Rand(fa.state.flatMap(a => f(a).state))
 

@@ -1,4 +1,4 @@
-# Scala Gen
+# Purerand
 
 [![Build Status](https://travis-ci.org/alonsodomin/scala-gen.svg?branch=master)](https://travis-ci.org/alonsodomin/scala-gen)
 

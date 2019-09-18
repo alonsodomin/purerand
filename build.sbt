@@ -1,18 +1,19 @@
 inThisBuild(Seq(
+  name := "purerand",
   startYear := Some(2019),
   organization := "com.github.alonsodomin",
   organizationName := "A. Alonso Dominguez",
   description := "Pure random generator of values",
   licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT")),
-  scmInfo := Some(ScmInfo(url("https://github.com/alonsodomin/scala-gen"), "scm:git:git@github.com:alonsodomin/scala-gen.git"))
+  scmInfo := Some(ScmInfo(url("https://github.com/alonsodomin/purerand"), "scm:git:git@github.com:alonsodomin/purerand.git"))
 ))
 
-lazy val `scala-gen` = (project in file("."))
+lazy val purerand = (project in file("."))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(scalacSettings)
   .settings(commonSettings)
   .settings(
-    moduleName := "gen",
+    moduleName := "purerand",
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % "2.0.0",
       "org.typelevel" %% "kittens" % "2.0.0",

@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package gen
+package purerand
 
 import cats._
 import cats.data._
@@ -74,23 +74,23 @@ object Rand extends RandInstances {
 
 }
 
-private[gen] trait RandInstances {
+private[purerand] trait RandInstances {
   implicit val randMonad: Monad[Rand] = new RandMonad {}
 }
 
-private[gen] trait RandFunctor extends Functor[Rand] {
+private[purerand] trait RandFunctor extends Functor[Rand] {
   def map[A, B](fa: Rand[A])(f: A => B): Rand[B] =
       Rand(fa.state.map(f))
 }
 
-private[gen] trait RandApplicative extends RandFunctor with Applicative[Rand] {
+private[purerand] trait RandApplicative extends RandFunctor with Applicative[Rand] {
   def pure[A](x: A): Rand[A] = Rand.const(x)
 
   def ap[A, B](ff: Rand[A => B])(fa: Rand[A]): Rand[B] =
     Rand(ff.state.ap(fa.state))
 }
 
-private[gen] trait RandMonad extends RandApplicative with Monad[Rand] {
+private[purerand] trait RandMonad extends RandApplicative with Monad[Rand] {
   def flatMap[A, B](fa: Rand[A])(f: A => Rand[B]): Rand[B] =
     Rand(fa.state.flatMap(a => f(a).state))
 

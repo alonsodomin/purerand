@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package gen
+package purerand
 
 import cats.Functor
 import cats.effect.Clock
@@ -35,7 +35,7 @@ object Seed {
     clock.monotonic(TimeUnit.MICROSECONDS).map(fromLong)
 }
 
-trait RNG {
+private[purerand] trait RNG {
   def nextInt: (RNG, Int)
 
   def nextInt(maxValue: Int): (RNG, Int) = {
@@ -45,11 +45,11 @@ trait RNG {
   }
 
 }
-object RNG {
+private[purerand] object RNG {
 
   def apply(seed: Seed): RNG = SimpleRNG(seed)
 
-  private case class SimpleRNG(seed: Seed) extends RNG {
+  case class SimpleRNG(seed: Seed) extends RNG {
     def nextInt: (RNG, Int) = {
       val newSeed = (seed.value * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
       val nextRNG = SimpleRNG(Seed(newSeed))

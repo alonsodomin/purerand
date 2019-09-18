@@ -27,19 +27,22 @@ import cats.implicits._
 
 import fs2.{Pure, Stream}
 
-final case class Rand[A] private (state: State[RNG, A]) extends AnyVal {
+final class Rand[A] private[purerand] (private[purerand] val state: State[Seed, A]) extends AnyVal {
+
+  def next(seed: Seed): A =
+    state.runA(seed).value
 
   def sample(seed: Seed): Stream[Pure, A] =
-    Stream.unfold(RNG(seed))(rng => state.run(rng).value.swap.some)
+    Stream.unfold(seed)(rng => state.run(rng).value.swap.some)
   
 }
 object Rand extends RandInstances {
 
-  def const[A](a: A): Rand[A] = Rand(State.pure(a))
+  def const[A](a: A): Rand[A] = new Rand(State.pure(a))
 
   def unit: Rand[Unit] = const(())
 
-  def oneOf[A](seq: NonEmptyVector[A]): Rand[A] = Rand(State { rng =>
+  def oneOf[A](seq: NonEmptyVector[A]): Rand[A] = new Rand(State { rng =>
     val vec = seq.toVector
     val (r, idx) = rng.nextInt(vec.size)
     (r, vec(idx))
@@ -53,14 +56,14 @@ object Rand extends RandInstances {
   def listOfN[A](n: Int, rand: Rand[A]): Rand[List[A]] =
     List.fill(n)(rand).sequence
 
-  def int: Rand[Int] = Rand(State(_.nextInt))
+  def int: Rand[Int] = new Rand(State(_.nextInt))
   
-  def boolean: Rand[Boolean] = Rand(State { rng =>
+  def boolean: Rand[Boolean] = new Rand(State { rng =>
     val (r, i) = rng.nextInt
     (r, if (i % 2 == 0) false else true)
   })
 
-  def double: Rand[Double] = Rand(State { rng =>
+  def double: Rand[Double] = new Rand(State { rng =>
     val (r, i) = rng.nextInt(Int.MaxValue)
     (r, i / Int.MaxValue.toDouble + 1)
   })
@@ -76,24 +79,31 @@ object Rand extends RandInstances {
 
 private[purerand] trait RandInstances {
   implicit val randMonad: Monad[Rand] = new RandMonad {}
+
+  implicit def randEq[A: Eq]: Eq[Rand[A]] = Eq.instance { (left, right) =>
+    val seed = Seed.fromLong(1L)
+    val nextLeft = left.next(seed)
+    val nextRight = right.next(seed)
+    nextLeft === nextRight
+  }
 }
 
 private[purerand] trait RandFunctor extends Functor[Rand] {
   def map[A, B](fa: Rand[A])(f: A => B): Rand[B] =
-      Rand(fa.state.map(f))
+      new Rand(fa.state.map(f))
 }
 
 private[purerand] trait RandApplicative extends RandFunctor with Applicative[Rand] {
   def pure[A](x: A): Rand[A] = Rand.const(x)
 
   def ap[A, B](ff: Rand[A => B])(fa: Rand[A]): Rand[B] =
-    Rand(ff.state.ap(fa.state))
+    new Rand(ff.state.ap(fa.state))
 }
 
 private[purerand] trait RandMonad extends RandApplicative with Monad[Rand] {
   def flatMap[A, B](fa: Rand[A])(f: A => Rand[B]): Rand[B] =
-    Rand(fa.state.flatMap(a => f(a).state))
+    new Rand(fa.state.flatMap(a => f(a).state))
 
   def tailRecM[A, B](a: A)(f: A => Rand[Either[A,B]]): Rand[B] =
-    Rand(Monad[State[RNG, ?]].tailRecM(a)(a => f(a).state))
+    new Rand(Monad[State[Seed, ?]].tailRecM(a)(a => f(a).state))
 }

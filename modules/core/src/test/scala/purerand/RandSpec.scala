@@ -21,31 +21,12 @@
 
 package purerand
 
-private[purerand] trait RNG {
-  def nextInt: (RNG, Int) = {
-    val (rng, l) = nextLong
-    (rng, l.toInt)
-  }
+import cats.laws.discipline._
 
-  def nextInt(maxValue: Int): (RNG, Int) = {
-    val (rng, i) = nextInt
-    val abs = if (i < 0) -(i + 1) else i
-    (rng, abs % maxValue)
-  }
+class RandSpec extends PurerandSuite {
 
-  def nextLong: (RNG, Long)
+  checkAll("Functor[Rand]", FunctorTests[Rand].functor[Int, Int, Int])
+  checkAll("Applicative[Rand]", ApplicativeTests[Rand].applicative[Int, Int, Int])
+  checkAll("Monad[Rand]", MonadTests[Rand].monad[Int, Int, Int])
 
-}
-
-private[purerand] object RNG {
-  def apply(seed: Seed): RNG = SimpleRNG(seed)
-
-  private case class SimpleRNG(seed: Seed) extends RNG {
-    def nextLong: (RNG, Long) = {
-      val newSeed = (seed.value * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
-      val nextRNG = SimpleRNG(Seed(newSeed))
-      val n = (newSeed >>> 16)
-      (nextRNG, n)
-    }
-  }
 }

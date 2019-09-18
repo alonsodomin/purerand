@@ -30,7 +30,8 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .settings(
     moduleName := "purerand",
     libraryDependencies ++= Seq(
-      "org.typelevel" %%% "cats-core" % Versions.cats,
+      "org.typelevel" %%% "cats-core" % Versions.cats.main,
+      "org.typelevel" %%% "cats-testkit-scalatest" % Versions.cats.testkit % Test,
       "org.typelevel" %%% "kittens" % Versions.kittens,
       "co.fs2" %%% "fs2-core" % Versions.fs2
     )

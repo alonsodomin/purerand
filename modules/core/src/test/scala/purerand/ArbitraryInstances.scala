@@ -21,38 +21,21 @@
 
 package purerand
 
-import cats.{Eq, Functor}
-import cats.effect.Clock
-import cats.implicits._
+import org.scalacheck.{Arbitrary, Gen, Cogen}
 
-import java.util.concurrent.TimeUnit
+private[purerand] trait ArbitraryInstances {
+  import Arbitrary.arbitrary
 
-final case class Seed private (value: Long) extends AnyVal {
+  implicit val arbitrarySeed: Arbitrary[Seed] =
+    Arbitrary(arbitrary[Long].map(Seed.fromLong))
 
-  def nextLong: (Seed, Long) = {
-    val newSeed = (value * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
-    val nextSeed = Seed(newSeed)
-    val n = (newSeed >>> 16)
-    (nextSeed, n)
-  }
+  implicit val arbitraryRand: Arbitrary[Rand[Int]] =
+    Arbitrary(Gen.const(Rand.int))
 
-  def nextInt: (Seed, Int) = {
-    val (seed, l) = nextLong
-    (seed, l.toInt)
-  }
+  implicit def arbitraryRandFn[A, B](implicit arbFn: Arbitrary[A => B]): Arbitrary[Rand[A => B]] =
+    Arbitrary(arbFn.arbitrary.map(Rand.const))
 
-  def nextInt(maxValue: Int): (Seed, Int) = {
-    val (seed, i) = nextInt
-    val abs = if (i < 0) -(i + 1) else i
-    (seed, abs % maxValue)
-  }
+  implicit def cogenRand[A: Cogen]: Cogen[Rand[A]] =
+    Cogen((seed, rand) => Cogen[A].perturb(seed, rand.next(Seed.fromLong(seed.long._1))))
 
-}
-object Seed {
-  def fromLong(value: Long): Seed = Seed(value)
-
-  def fromWallClock[F[_]: Functor](implicit clock: Clock[F]): F[Seed] = 
-    clock.monotonic(TimeUnit.MICROSECONDS).map(fromLong)
-
-  implicit val seedEq: Eq[Seed] = Eq.by(_.value)
 }

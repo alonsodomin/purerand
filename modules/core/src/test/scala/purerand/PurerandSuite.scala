@@ -21,38 +21,6 @@
 
 package purerand
 
-import cats.{Eq, Functor}
-import cats.effect.Clock
-import cats.implicits._
+import cats.tests.CatsSuite
 
-import java.util.concurrent.TimeUnit
-
-final case class Seed private (value: Long) extends AnyVal {
-
-  def nextLong: (Seed, Long) = {
-    val newSeed = (value * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
-    val nextSeed = Seed(newSeed)
-    val n = (newSeed >>> 16)
-    (nextSeed, n)
-  }
-
-  def nextInt: (Seed, Int) = {
-    val (seed, l) = nextLong
-    (seed, l.toInt)
-  }
-
-  def nextInt(maxValue: Int): (Seed, Int) = {
-    val (seed, i) = nextInt
-    val abs = if (i < 0) -(i + 1) else i
-    (seed, abs % maxValue)
-  }
-
-}
-object Seed {
-  def fromLong(value: Long): Seed = Seed(value)
-
-  def fromWallClock[F[_]: Functor](implicit clock: Clock[F]): F[Seed] = 
-    clock.monotonic(TimeUnit.MICROSECONDS).map(fromLong)
-
-  implicit val seedEq: Eq[Seed] = Eq.by(_.value)
-}
+abstract class PurerandSuite extends CatsSuite with ArbitraryInstances

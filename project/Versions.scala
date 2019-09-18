@@ -6,4 +6,5 @@ object Versions {
 
   val kittens = "2.0.0"
   val fs2     = "2.0.1"
+  val decline = "0.7.0-M0"
 }

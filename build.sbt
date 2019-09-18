@@ -25,7 +25,7 @@ inThisBuild(
 
 lazy val purerand = (project in file("."))
   .settings(globalSettings)
-  .aggregate(core.js, core.jvm)
+  .aggregate(core.js, core.jvm, cli.js, cli.jvm)
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
@@ -35,7 +35,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .settings(globalSettings)
   .settings(commonSettings)
   .settings(
-    moduleName := "purerand",
+    moduleName := "purerand-core",
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core"              % Versions.cats.main,
       "org.typelevel" %%% "cats-testkit-scalatest" % Versions.cats.testkit % Test,
@@ -44,6 +44,20 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
     ),
     parallelExecution in Test := false
   )
+
+lazy val cli = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .withoutSuffixFor(JVMPlatform)
+  .in(file("modules/cli"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(globalSettings)
+  .settings(commonSettings)
+  .settings(
+    moduleName := "purerand-cli",
+    libraryDependencies ++= Seq(
+      "com.monovore" %%% "decline-effect" % Versions.decline
+    )
+  ).dependsOn(core)
 
 // Command aliases
 

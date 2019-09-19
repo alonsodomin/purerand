@@ -38,16 +38,19 @@ final class Rand[A] private[purerand] (private[purerand] val state: State[Seed, 
 }
 object Rand extends RandInstances {
 
+  def apply[A](f: Seed => (Seed, A)): Rand[A] =
+    new Rand(State(f))
+
   def const[A](a: A): Rand[A] = new Rand(State.pure(a))
 
   def unit: Rand[Unit] = const(())
 
   def oneOf[A](seq: NonEmptyVector[A]): Rand[A] =
-    new Rand(State { rng =>
-      val vec      = seq.toVector
-      val (r, idx) = rng.nextInt(vec.size)
-      (r, vec(idx))
-    })
+    Rand { seed =>
+      val vec            = seq.toVector
+      val (newSeed, idx) = seed.nextInt(vec.size)
+      (newSeed, vec(idx))
+    }
 
   def option[A](rand: Rand[A]): Rand[Option[A]] =
     for {
@@ -58,19 +61,16 @@ object Rand extends RandInstances {
   def listOfN[A](n: Int, rand: Rand[A]): Rand[List[A]] =
     List.fill(n)(rand).sequence
 
-  def int: Rand[Int] = new Rand(State(_.nextInt))
+  def int: Rand[Int] = Rand(_.nextInt)
 
   def boolean: Rand[Boolean] =
-    new Rand(State { rng =>
-      val (r, i) = rng.nextInt
+    Rand { seed =>
+      val (r, i) = seed.nextInt
       (r, if (i % 2 == 0) false else true)
-    })
+    }
 
   def double: Rand[Double] =
-    new Rand(State { rng =>
-      val (r, i) = rng.nextInt(Int.MaxValue)
-      (r, i / Int.MaxValue.toDouble + 1)
-    })
+    Rand(_.nextDouble)
 
   def weighted[A](rands: NonEmptyList[(Int, Rand[A])]): Rand[A] = {
     val allRands = rands.flatMap {

@@ -47,6 +47,11 @@ final case class Seed private (value: Long) extends AnyVal {
     (seed, abs % maxValue)
   }
 
+  def nextDouble: (Seed, Double) = {
+    val (seed, i) = nextInt(Int.MaxValue)
+    (seed, i / Int.MaxValue.toDouble + 1)
+  }
+
 }
 object Seed {
   def fromLong(value: Long): Seed = Seed(value)

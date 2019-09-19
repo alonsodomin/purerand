@@ -30,9 +30,9 @@ import java.util.concurrent.TimeUnit
 final case class Seed private (value: Long) extends AnyVal {
 
   def nextLong: (Seed, Long) = {
-    val newSeed = (value * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
+    val newSeed  = (value * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
     val nextSeed = Seed(newSeed)
-    val n = (newSeed >>> 16)
+    val n        = (newSeed >>> 16)
     (nextSeed, n)
   }
 
@@ -43,7 +43,7 @@ final case class Seed private (value: Long) extends AnyVal {
 
   def nextInt(maxValue: Int): (Seed, Int) = {
     val (seed, i) = nextInt
-    val abs = if (i < 0) -(i + 1) else i
+    val abs       = if (i < 0) -(i + 1) else i
     (seed, abs % maxValue)
   }
 
@@ -51,7 +51,7 @@ final case class Seed private (value: Long) extends AnyVal {
 object Seed {
   def fromLong(value: Long): Seed = Seed(value)
 
-  def fromWallClock[F[_]: Functor](implicit clock: Clock[F]): F[Seed] = 
+  def fromWallClock[F[_]: Functor](implicit clock: Clock[F]): F[Seed] =
     clock.monotonic(TimeUnit.MICROSECONDS).map(fromLong)
 
   implicit val seedEq: Eq[Seed] = Eq.by(_.value)

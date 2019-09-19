@@ -1,20 +1,27 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-inThisBuild(Seq(
-  name := "purerand",
-  startYear := Some(2019),
-  organization := "com.github.alonsodomin",
-  organizationName := "A. Alonso Dominguez",
-  description := "Pure random generator of values",
-  licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT")),
-  scmInfo := Some(ScmInfo(url("https://github.com/alonsodomin/purerand"), "scm:git:git@github.com:alonsodomin/purerand.git")),
-  developers += Developer(
-    "alonsodomin",
-    "A. Alonso Dominguez",
-    "",
-    url("https://github.com/alonsodomin")
+inThisBuild(
+  Seq(
+    name := "purerand",
+    startYear := Some(2019),
+    organization := "com.github.alonsodomin",
+    organizationName := "A. Alonso Dominguez",
+    description := "Pure random generator of values",
+    licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT")),
+    scmInfo := Some(
+      ScmInfo(
+        url("https://github.com/alonsodomin/purerand"),
+        "scm:git:git@github.com:alonsodomin/purerand.git"
+      )
+    ),
+    developers += Developer(
+      "alonsodomin",
+      "A. Alonso Dominguez",
+      "",
+      url("https://github.com/alonsodomin")
+    )
   )
-))
+)
 
 lazy val purerand = (project in file("."))
   .settings(globalSettings)
@@ -30,12 +37,30 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .settings(
     moduleName := "purerand",
     libraryDependencies ++= Seq(
-      "org.typelevel" %%% "cats-core" % Versions.cats.main,
+      "org.typelevel" %%% "cats-core"              % Versions.cats.main,
       "org.typelevel" %%% "cats-testkit-scalatest" % Versions.cats.testkit % Test,
-      "org.typelevel" %%% "kittens" % Versions.kittens,
-      "co.fs2" %%% "fs2-core" % Versions.fs2
+      "org.typelevel" %%% "kittens"                % Versions.kittens,
+      "co.fs2"        %%% "fs2-core"               % Versions.fs2
     )
   )
+
+// Command aliases
+
+addCommandAlias(
+  "fmt",
+  Seq(
+    "scalafmt",
+    "scalafmtSbt"
+  ).mkString(";")
+)
+
+addCommandAlias(
+  "chkfmt",
+  Seq(
+    "scalafmtCheck",
+    "scalafmtSbtCheck"
+  ).mkString(";")
+)
 
 // Settings
 
@@ -115,7 +140,7 @@ lazy val scalacSettings = Seq(
 
 lazy val commonSettings = scalacSettings ++ Seq(
   libraryDependencies ++= Seq(
-    compilerPlugin("org.typelevel" % "kind-projector" % "0.10.3" cross CrossVersion.binary),
-    compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
+    compilerPlugin("org.typelevel" % "kind-projector"      % "0.10.3" cross CrossVersion.binary),
+    compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1")
   )
 )

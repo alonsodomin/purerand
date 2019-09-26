@@ -21,7 +21,7 @@
 
 package purerand
 
-import org.scalacheck.{Arbitrary, Gen, Cogen}
+import org.scalacheck.{Arbitrary, Cogen}
 
 private[purerand] trait ArbitraryInstances {
   import Arbitrary.arbitrary
@@ -29,13 +29,13 @@ private[purerand] trait ArbitraryInstances {
   implicit val arbitrarySeed: Arbitrary[Seed] =
     Arbitrary(arbitrary[Long].map(Seed.fromLong))
 
-  implicit val arbitraryRand: Arbitrary[Rand[Int]] =
-    Arbitrary(Gen.const(Rand.int))
+  implicit def arbitraryRand[A](implicit arbA: Arbitrary[A]): Arbitrary[Rand[A]] =
+    Arbitrary(arbA.arbitrary.map(Rand.const))
 
   implicit def arbitraryRandFn[A, B](implicit arbFn: Arbitrary[A => B]): Arbitrary[Rand[A => B]] =
     Arbitrary(arbFn.arbitrary.map(Rand.const))
 
   implicit def cogenRand[A: Cogen]: Cogen[Rand[A]] =
-    Cogen((seed, rand) => Cogen[A].perturb(seed, rand.next(Seed.fromLong(seed.long._1))))
+    Cogen((seed, rand) => Cogen[A].perturb(seed, rand.single(Seed.fromLong(seed.long._1))))
 
 }

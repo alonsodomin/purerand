@@ -93,7 +93,7 @@ private[purerand] trait RandInstances {
   }
 }
 
-private[purerand] class RandInstance extends Monad[Rand] with FunctorFilter[Rand] {
+private[purerand] final class RandInstance extends Monad[Rand] with FunctorFilter[Rand] {
   def functor: Functor[Rand] = this
 
   def pure[A](x: A): Rand[A] = Rand.const(x)

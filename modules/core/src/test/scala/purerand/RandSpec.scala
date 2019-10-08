@@ -25,9 +25,7 @@ import cats.laws.discipline._
 
 class RandSpec extends PurerandSuite {
 
-  checkAll("Functor[Rand]", FunctorTests[Rand].functor[Int, Int, Int])
-  //checkAll("FunctorFilter[Rand]", FunctorFilterTests[Rand].functorFilter[Int, Int, Int])
-  checkAll("Applicative[Rand]", ApplicativeTests[Rand].applicative[Int, Int, Int])
   checkAll("Monad[Rand]", MonadTests[Rand].monad[Int, Int, Int])
+  //checkAll("FunctorFilter[Rand]", FunctorFilterTests[Rand].functorFilter[Int, Int, Int])
 
 }

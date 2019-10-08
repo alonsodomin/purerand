@@ -33,7 +33,7 @@ final class Rand[A] private[purerand] (private[purerand] val state: State[Seed, 
     state.runA(seed).value
 
   def sample(seed: Seed): Stream[Pure, A] =
-    Stream.unfold(seed)(rng => state.run(rng).value.swap.some)
+    Stream.unfold(seed)(state.run(_).value.swap.some)
 
 }
 object Rand extends RandInstances {
@@ -104,6 +104,9 @@ private[purerand] final class RandInstance extends Monad[Rand] with FunctorFilte
   def tailRecM[A, B](a: A)(f: A => Rand[Either[A, B]]): Rand[B] =
     new Rand(Monad[State[Seed, *]].tailRecM(a)(a => f(a).state))
 
-  def mapFilter[A, B](fa: Rand[A])(f: A => Option[B]): Rand[B] =
-    flatMap(fa)(f(_).fold(mapFilter(fa)(f))(pure))
+  def mapFilter[A, B](fa: Rand[A])(f: A => Option[B]): Rand[B] = 
+    flatMap(fa) { a =>
+      tailRecM(a)(x => pure(f(a).map(Right(_)).getOrElse(Left(x))))
+    }
+
 }

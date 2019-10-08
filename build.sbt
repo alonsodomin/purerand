@@ -40,7 +40,8 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
       "org.typelevel" %%% "cats-core"              % Versions.cats.main,
       "org.typelevel" %%% "cats-testkit-scalatest" % Versions.cats.testkit % Test,
       "org.typelevel" %%% "kittens"                % Versions.kittens,
-      "co.fs2"        %%% "fs2-core"               % Versions.fs2
+      "co.fs2"        %%% "fs2-core"               % Versions.fs2,
+      "org.scalatest" %%% "scalatest"              % Versions.scalaTest % Test
     ),
     parallelExecution in Test := false
   )

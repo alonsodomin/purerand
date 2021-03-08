@@ -6,5 +6,5 @@ object Versions {
 
   val kittens = "2.0.0"
   val fs2     = "2.1.0"
-  val scalaTest = "3.2.4"
+  val scalaTest = "3.2.6"
 }
